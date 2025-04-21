@@ -1,0 +1,62 @@
+import requests
+import pandas as pd
+import time
+
+def get_real_time_stock_data(stock_code):
+    """
+    通过新浪API获取指定股票的实时数据
+    """
+    url = f"http://hq.sinajs.cn/list={stock_code}"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.text
+            return data
+        else:
+            print(f"请求失败，状态码：{response.status_code}")
+            return None
+    except Exception as e:
+        print(f"请求出错：{e}")
+        return None
+
+def parse_stock_data(data):
+    """
+    解析新浪返回的股票数据
+    """
+    if data is None:
+        return None
+    data_list = data.split(',')
+    stock_info = {
+        "股票代码": data_list[0].split('=')[1],
+        "股票名称": data_list[1],
+        "当前价格": float(data_list[2]),
+        "开盘价": float(data_list[3]),
+        "昨日收盘价": float(data_list[4]),
+        "最高价": float(data_list[5]),
+        "最低价": float(data_list[6]),
+        "今日交易量（手）": data_list[7],
+        "成交金额（万元）": data_list[8],
+        "换手率": data_list[9]
+    }
+    return stock_info
+
+def main():
+    stock_code = input("请输入股票代码（如600390）：")
+    
+    while True:
+        data = get_real_time_stock_data(stock_code)
+        if data:
+            stock_info = parse_stock_data(data)
+            if stock_info:
+                print("实时行情如下：")
+                for key, value in stock_info.items():
+                    print(f"{key}: {value}")
+                print("\n" + "="*30 + "\n")
+        else:
+            print(f"无法获取{stock_code}的实时数据。")
+        
+        # 设置刷新间隔（如5秒）
+        time.sleep(5)
+
+if __name__ == "__main__":
+    main()
